@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{amsmath}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+\definecolor{commentgreen}{rgb}{0.3,0.6,0.75}
+\definecolor{keywordgreen}{rgb}{0.15,0.5,0.15}
+\definecolor{stringmaroon}{rgb}{0.5,0,0}
+\usepackage{amsmath}
+\newcommand\norm[1]{\left\lVert#1\right\rVert}
+\usepackage{geometry}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{keywordgreen},
+    stringstyle=\color{stringmaroon},
+    basicstyle=\footnotesize\ttfamily,
+    breaklines=true,
+    captionpos=b,                    
+    keepspaces=false,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4
+}
+\lstset{style=mystyle}
+\title{Assignment2}
+\begin{document}
+\maketitle
+\section{Question(a)}
+We know that:
+\begin{equation}
+y_w=\left\{\begin{aligned} & 1 &w\text{ shown in context of } o\\
+& 0 & w\text{ not shown in context of } o\\
+\end{aligned} \right.
+\end{equation}
+And since y is a one-hot vector, so only for $y_o$, it is 1.
+\begin{equation}
+\text{cross\_entropy}(y, \hat{y})=\sum_{w \in {V}}y_wlog(\hat{y_w}) = y_olog(\hat{y_o})
+\end{equation} 
+\section{Question(b)}
+$U$ is a matrix where each column is $u_i$ for context word $i$. $c$ is the center word's index, $o$ is the outside word's index.
+\begin{equation}
+\begin{aligned}
+J(o, c, U) &= -log\frac{exp(u_o^Tv_c)}{\sum_{w \in {V}}{exp(u_w^Tv_c)}}\\
+&=-u_o^Tv_c + log(\sum_{w \in {V}}{exp(u_w^Tv_c}))
+\end{aligned}
+\end{equation} 
+\begin{equation}
+\begin{aligned}
+\frac{\partial J(o, c, U)}{\partial v_c} &= -u_o + \frac{\partial log\sum_{w \in V} exp(u_w^Tv_c)}{\partial v_c} \\
+&= -u_o + \frac{1}{\sum_{w \in V} exp(u_w^Tv_c)}\frac{\partial{\sum_{w \in V} exp(u_w^Tv_c)}}{\partial v_c}\\ 
+&= -u_o + \frac{\sum_{w \in V} u_wexp(u_w^Tv_c)}{\sum_{w \in V} exp(u_w^Tv_c)}\\
+&= -Uy + \sum_{w \in V} u_w\hat y\\
+&= U(\hat y - y)
+\end{aligned}
+\end{equation} 
+\section{Question(c)}
+If $w$ = $o$(this word is the outside word), then:
+\begin{equation}
+\begin{aligned}
+\frac{\partial J(o, c, U)}{\partial u_w} &= -v_c + \frac{\partial log\sum_{w \in V} exp(u_w^Tv_c)}{\partial u_o} \\
+&= -v_c + \frac{1}{\sum_{w \in V} exp(u_w^Tv_c)}\frac{\partial{\sum_{w \in V} exp(u_w^Tv_c)}}{\partial u_o}\\ 
+&= -v_c + \frac{v_cexp(u_w^Tv_c)}{\sum_{w \in V} exp(u_w^Tv_c)}\\
+&= -v_c + v_c\hat y\\
+&= v_c(\hat y - y)
+\end{aligned}
+\end{equation} 
+\end{document} 
+
