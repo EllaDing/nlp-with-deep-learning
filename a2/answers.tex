@@ -75,6 +75,52 @@ If $w$ = $o$(this word is the outside word), then:
 &= -v_c + v_c\hat y\\
 &= v_c(\hat y - y)
 \end{aligned}
+\end{equation}
+Otheriwise $v_c\hat y$
+\section{Question(d)}
+\begin{equation}
+\begin{aligned}
+\frac{d\sigma(x)}{d x} &= \frac{d(1+e^{-x})^{-1}}{dx} \\
+&= -(1+e^{-x})^{-2} e^{-x} \\
+&= -\frac{1}{(1+e^{-x})(1+e^x)} \\
+&= \sigma(x)\sigma(-x)
+\end{aligned}
+\end{equation}
+\section{Question(e)}
+\begin{equation}
+\begin{aligned}
+J_{\text{neg-sample}}(v_o, c, U) &= -log(\sigma(u_o^Tv_c)) - \sum_{v_k \in \text{neg}}log(\sigma(-u_k^Tv_c))\\
+\frac{\partial J_{\text{neg-sample}}(v_o, c, U)}{\partial v_c} &= -\frac{\partial(log(\sigma(u_o^Tv_c))}{\partial v_c} - \sum_{v_k \in \text{neg}}\frac{\partial log(\sigma(-u_k^Tv_c))}{\partial v_c}\\
+&= -u_o\sigma(-u_o^Tv_c) + \sum_{v_k \in \text{neg}}u_k\sigma(u_k^Tv_c)\\
+&= u_o[\sigma(u_o^Tv_c)-1] + \sum_{v_k \in \text{neg}}u_k\sigma(u_k^Tv_c)
+\end{aligned}
+\end{equation} 
+
+\begin{equation}
+\begin{aligned}
+\frac{\partial J_{\text{neg-sample}}(v_o, c, U)}{\partial u_k} &= -\frac{\partial(log(\sigma(u_o^Tv_c))}{\partial u_k} - \sum_{v_k \in \text{neg}}\frac{\partial log(\sigma(-u_k^Tv_c))}{\partial u_k}\\
+&= v_c\sigma(u_k^Tv_c) \quad\text{ if } u_k \ne u_o\\
+&= -v_c\sigma(-u_o^Tv_c) \quad\text{ if } u_k = u_o
+\end{aligned}
+\end{equation} 
+This negative-sampling loss function is more efficient to compute than naive softmax loss function because here only one vector $u_k$ or $v_c$ or $u_o$ involved, but in naive softmax, we need the whole matrix $U$ to be involved.
+\section{Question(f)}
+(i) \begin{equation}
+\begin{aligned}
+\frac{\partial J_{\text{skip-gram}}(v_o, w_{t-m}, ... , w_{t+m}, U)}{\partial U} &=
+\sum_{-m \le j \le m, j \ne 0}\frac{\partial J(v_c, w_{t+j}, U)}{\partial U} \\
+&= \sum_{-m \le j \le m, j \ne 0}v_{c}(\hat y_j - y_j) 
+\end{aligned}
+\end{equation} 
+(ii) \begin{equation}
+\begin{aligned}
+\frac{\partial J_{\text{skip-gram}}(v_o, w_{t-m}, ... , w_{t+m}, U)}{\partial v_c} &= \sum_{-m \le j \le m, j \ne 0} \frac{\partial j(v_c, w_j, U)}{\partial v_c} \\ &= \sum_{-m \le j \le m, j \ne 0}U(\hat y_j - y_j)
+\end{aligned}
+\end{equation} 
+(iii) \begin{equation}
+\begin{aligned}
+\frac{\partial J_{\text{skip-gram}}(v_o, w_{t-m}, ... , w_{t+m}, U)}{\partial v_w} (\text{ when } w \ne c &)= 0
+\end{aligned}
 \end{equation} 
 \end{document} 
 
