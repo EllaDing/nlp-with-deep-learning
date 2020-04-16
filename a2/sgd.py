@@ -87,7 +87,7 @@ def sgd(f, x0, step, iterations, postprocessing=None, useSaved=False,
         loss = None
         ### YOUR CODE HERE
         loss = -np.log(f(x))[0]
-        postprocessing = lambda x: x - step *f(x)[1]
+        postprocessing = lambda x: x - step * f(x)[1]
         ### END YOUR CODE
 
         x = postprocessing(x)
