@@ -8,6 +8,7 @@ Haoshen Hong <haoshen@stanford.edu>
 """
 
 import sys
+import random
 
 class PartialParse(object):
     def __init__(self, sentence):
@@ -112,10 +113,19 @@ def minibatch_parse(sentences, model, batch_size):
     ###             contains references to the same objects. Thus, you should NOT use the `del` operator
     ###             to remove objects from the `unfinished_parses` list. This will free the underlying memory that
     ###             is being accessed by `partial_parses` and may cause your code to crash.
-
-
+    partial_parses = [PartialParse(sentence) for sentence in sentences]
+    unfinished_indices = [i for i in range(len(partial_parses))]
+    dependencies = [0] * len(partial_parses)
+    while len(unfinished_indices) != 0:
+        indices = random.sample(unfinished_indices, min(batch_size, len(unfinished_indices)))
+        minibatch = [partial_parses[i] for i in indices]
+        transitions = model.predict(minibatch)
+        for i, index in enumerate(indices):
+            partial_parses[index].parse_step(transitions[i])
+            if (len(partial_parses[index].buffer) == 0 and len(partial_parses[index].stack) == 1):
+              dependencies[index] = partial_parses[index].dependencies
+              unfinished_indices.remove(index)
     ### END YOUR CODE
-
     return dependencies
 
 
