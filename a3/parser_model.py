@@ -71,8 +71,11 @@ class ParserModel(nn.Module):
         ###     Initialization: https://pytorch.org/docs/stable/nn.init.html
         ###     Dropout: https://pytorch.org/docs/stable/nn.html#dropout-layers
 
-
-
+        self.embed_to_hidden_weight = nn.Parameter(torch.randn(self.embed_size, hidden_size))
+        self.embed_to_hidden_bias = nn.Parameter(torch.randn(hidden_size))
+        self.dropout = nn.Dropout(p=dropout_prob)
+        self.hidden_to_logits_weight = nn.Parameter(torch.randn(hidden_size, 3))
+        self.hidden_to_logits_bias = nn.Parameter(torch.randn(3))
 
         ### END YOUR CODE
 
@@ -103,9 +106,8 @@ class ParserModel(nn.Module):
         ###     Index select: https://pytorch.org/docs/stable/torch.html#torch.index_select
         ###     Gather: https://pytorch.org/docs/stable/torch.html#torch.gather
         ###     View: https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view
-
-
-
+        w_temp = w.view(w.shape[0] * w.shape[1])
+        x = torch.index_select(self.embeddings, 0, w_temp).view(w.shape[0], self.embeddings.shape[1] * w.shape[1])
         ### END YOUR CODE
         return x
 
@@ -140,8 +142,9 @@ class ParserModel(nn.Module):
         ### Please see the following docs for support:
         ###     Matrix product: https://pytorch.org/docs/stable/torch.html#torch.matmul
         ###     ReLU: https://pytorch.org/docs/stable/nn.html?highlight=relu#torch.nn.functional.relu
-
-
+        batch_embeddings = self.embedding_lookup(w).view(w.shape[0], w.shape[1], self.embed_size)
+        hidden = torch.matmul(batch_embeddings, self.embed_to_hidden_weight) + self.embed_to_hidden_bias
+        logits = torch.matmul(self.dropout(F.relu(hidden.mean(dim=1))), self.hidden_to_logits_weight) + self.hidden_to_logits_bias
         ### END YOUR CODE
         return logits
 
