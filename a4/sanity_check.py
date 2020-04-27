@@ -146,7 +146,6 @@ def question_1e_sanity_check(model, src_sents, tgt_sents, vocab):
 
     # Load Outputs
     combined_outputs_target = torch.load('./sanity_check_en_es_data/combined_outputs.pkl')
-    print(combined_outputs_target.shape)
 
     # Configure for Testing
     reinitialize_layers(model)
