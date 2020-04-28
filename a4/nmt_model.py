@@ -90,7 +90,7 @@ class NMT(nn.Module):
         self.c_projection = nn.Linear(in_features=2*self.hidden_size, out_features=self.hidden_size, bias=False)
         self.att_projection = nn.Linear(in_features=2*self.hidden_size, out_features=self.hidden_size, bias=False)
         self.combined_output_projection = nn.Linear(in_features=3*self.hidden_size, out_features=self.hidden_size, bias=False)
-        self.target_vocab_projection = nn.Linear(in_features=self.hidden_size, out_features=1, bias=False)
+        self.target_vocab_projection = nn.Linear(in_features=self.hidden_size, out_features=len(vocab.tgt), bias=False)
         self.dropout = nn.Dropout(dropout_rate)
 
 
@@ -269,7 +269,6 @@ class NMT(nn.Module):
         enc_hiddens_proj = self.att_projection(enc_hiddens)
         # Shape (tgt_len, b, e) 
         Y = self.model_embeddings.target(target_padded)
-        loss = nn.CrossEntropyLoss()
 
         h_t, c_t = dec_init_state
         # g_t: ground truth. shape (1, b, e)
