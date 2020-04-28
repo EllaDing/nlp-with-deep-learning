@@ -39,6 +39,7 @@
 \begin{document}
 \maketitle
 \section{Neural Machine Translation with RNNs}
+(g) The mask is used for setting padding words' weights(attention distribution score) to $-inf$, i.e. it sets the impact of padding words in source sentence to minimal for decoder. It is useful because the decoder should only pay attention to those real words rather than padding words in source sentence.
 \section{Analyzing NMT Systems}
 \end{document} 
 

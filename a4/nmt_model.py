@@ -83,7 +83,7 @@ class NMT(nn.Module):
             bias=True,
             bidirectional=True)
         self.decoder =  nn.LSTMCell(
-            input_size=embed_size,
+            input_size=embed_size+self.hidden_size,
             hidden_size=self.hidden_size,
             bias=True)
         self.h_projection = nn.Linear(in_features=2*self.hidden_size, out_features=self.hidden_size, bias=False)
@@ -277,11 +277,8 @@ class NMT(nn.Module):
             (h_t, c_t), combined_output, _ = self.step(
                 torch.cat([g_t.squeeze(), o_prev], 1), (h_t, c_t), enc_hiddens, enc_hiddens_proj, enc_masks)
             combined_outputs.append(combined_output)
-            softmax = nn.Softmax(dim=0)
-            P_t = softmax(self.target_vocab_projection(combined_output))
-            print(t)
-            output = loss(P_t, ?????)
-            output.backwards()
+            o_prev = combined_output
+        combined_outputs = torch.stack(combined_outputs)
         ### END YOUR CODE
 
         return combined_outputs
@@ -338,10 +335,10 @@ class NMT(nn.Module):
         ###         https://pytorch.org/docs/stable/torch.html#torch.unsqueeze
         ###     Tensor Squeeze:
         ###         https://pytorch.org/docs/stable/torch.html#torch.squeeze
-        h_t, c_t = rnn(Ybar_t, dec_state)
-        dec_hidden, dec_cell = dec_state
+        dec_state = self.decoder(Ybar_t, dec_state)
+        h_t, c_t = dec_state
         # Compute attention distribution.
-        e_t = torch.matmul(torch.matmul(enc_hiddens_proj, enc_hiddens), h_t)
+        e_t = torch.matmul(enc_hiddens_proj, h_t.unsqueeze(2)).squeeze(2)
 
         ### END YOUR CODE
 
@@ -375,12 +372,13 @@ class NMT(nn.Module):
         ###         https://pytorch.org/docs/stable/torch.html#torch.cat
         ###     Tanh:
         ###         https://pytorch.org/docs/stable/torch.html#torch.tanh
-        alpha = nn.Softmax(e_t)
+        s = nn.Softmax(dim=1)
+        alpha = s(e_t)
         # The first dimension is batch, do matmul on the rest dimensions.
-        a_t = torch.bmm(alpha, enc_hiddens)
-        U_t = torch.cat([a_t, h_t], 0)
+        a_t = torch.bmm(alpha.unsqueeze(1), enc_hiddens).squeeze(1)
+        U_t = torch.cat([a_t, h_t], 1)
         V_t = self.combined_output_projection(U_t)
-        O_t = self.Dropout(torch.tanh(V_t))
+        O_t = self.dropout(torch.tanh(V_t))
 
         ### END YOUR CODE
 
