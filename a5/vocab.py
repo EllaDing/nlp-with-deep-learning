@@ -52,14 +52,14 @@ class VocabEntry(object):
             """ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789,;.!?:'\"/\\|_@#$%^&*~`+-=<>()[]""")
 
         self.char2id = dict()  # Converts characters to integers
-        self.char2id['∏'] = 0  # <pad> token
+        self.char2id['<pad>'] = 0  # <pad> token
         self.char2id['{'] = 1  # start of word token
         self.char2id['}'] = 2  # end of word token
-        self.char2id['Û'] = 3  # <unk> token
+        self.char2id['<unk>'] = 3  # <unk> token
         for i, c in enumerate(self.char_list):
             self.char2id[c] = len(self.char2id)
-        self.char_pad = self.char2id['∏']
-        self.char_unk = self.char2id['Û']
+        self.char_pad = self.char2id['<pad>']
+        self.char_unk = self.char2id['<unk>']
         self.start_of_word = self.char2id["{"]
         self.end_of_word = self.char2id["}"]
         assert self.start_of_word + 1 == self.end_of_word
@@ -160,7 +160,10 @@ class VocabEntry(object):
         ###     - You may find .contiguous() useful after reshaping. Check the following links for more details:
         ###         https://pytorch.org/docs/stable/tensors.html#torch.Tensor.contiguous
         ###         https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view
-
+        char_ids = self.words2charindices(sents)
+        char_ids_padded = pad_sents_char(char_ids, self.char2id['<pad>'])
+        char_ids_tensor = torch.tensor(char_ids_padded, dtype=torch.long, device=device)
+        return char_ids_tensor.permute(1, 0, 2)
         ### END YOUR CODE
 
     def to_input_tensor(self, sents: List[List[str]], device: torch.device) -> torch.Tensor:
