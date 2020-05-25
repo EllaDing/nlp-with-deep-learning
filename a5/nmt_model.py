@@ -51,12 +51,12 @@ class NMT(nn.Module):
 
         ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
         self.encoder = nn.LSTM(
-            input_size=embed_size,
+            input_size=word_embed_size,
             hidden_size=self.hidden_size,
             bias=True,
             bidirectional=True)
         self.decoder =  nn.LSTMCell(
-            input_size=embed_size+self.hidden_size,
+            input_size=word_embed_size+self.hidden_size,
             hidden_size=self.hidden_size,
             bias=True)
         self.h_projection = nn.Linear(in_features=2*self.hidden_size, out_features=self.hidden_size, bias=False)
@@ -97,8 +97,21 @@ class NMT(nn.Module):
         ###     - Add `target_padded_chars` for character level padded encodings for target
         ###     - Modify calls to encode() and decode() to use the character level encodings
 
-        ### END YOUR CODE
+        # Convert list of lists into tensors
+        # Tensor: (tgt_len, b)
+        target_padded = self.vocab.tgt.to_input_tensor(target, device=self.device)
 
+        # Tensor: (max_sentence_length, batch_size, max_word_length)
+        source_padded_chars = self.vocab.src.to_input_tensor_char(source, device=self.device)
+        # Tensor: (max_sentence_length, batch_size, max_word_length)
+        target_padded_chars = self.vocab.tgt.to_input_tensor_char(target, device=self.device)
+
+        ### Run the network forward。
+        enc_hiddens, dec_init_state = self.encode(source_padded_chars, source_lengths)
+        enc_masks = self.generate_sent_masks(enc_hiddens, source_lengths)
+        # (tgt_len, b,  h), where tgt_len = maximum target sentence length, b = batch_size,  h = hidden size
+        combined_outputs = self.decode(enc_hiddens, enc_masks, dec_init_state, target_padded_chars)
+        ### END YOUR CODE
         P = F.log_softmax(self.target_vocab_projection(combined_outputs), dim=-1)
 
         # Zero out, probabilities for which we have nothing in the target text
@@ -121,7 +134,6 @@ class NMT(nn.Module):
             oovs_losses = self.charDecoder.train_forward(target_chars_oov.t().contiguous(),
                                                          (rnn_states_oov.unsqueeze(0), rnn_states_oov.unsqueeze(0)))
             scores = scores - oovs_losses
-
         return scores
 
     def encode(self, source_padded: torch.Tensor, source_lengths: List[int]) -> Tuple[
@@ -141,7 +153,18 @@ class NMT(nn.Module):
 
         ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
         ### Except replace "self.model_embeddings.source" with "self.model_embeddings_source"
-
+        X = self.model_embeddings_source(source_padded)
+        enc_hiddens, (last_hidden, last_cell) = self.encoder(
+            torch.nn.utils.rnn.pack_padded_sequence(input=X, lengths=source_lengths))
+        # For sentence[i], the last_hidden[i] shape is (2, self.hidden_size), then for all sentences
+        # the last_hidden.shape is (2, batch_size, self.hidden_size).
+        last_hidden = torch.cat((last_hidden[0], last_hidden[1]), 1)
+        last_cell = torch.cat((last_cell[0], last_cell[1]), 1)
+        # Please notice that enc_hiddens is used for computing attention distribution. Not for initializing decoder.
+        enc_hiddens = torch.nn.utils.rnn.pad_packed_sequence(enc_hiddens)[0].permute(1, 0, 2)
+        init_decoder_hidden = self.h_projection(last_hidden)
+        init_decoder_cell = self.c_projection(last_cell)
+        dec_init_state = init_decoder_hidden, init_decoder_cell
         ### END YOUR CODE FROM ASSIGNMENT 4
 
         return enc_hiddens, dec_init_state
@@ -174,7 +197,19 @@ class NMT(nn.Module):
 
         ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
         ### Except replace "self.model_embeddings.target" with "self.model_embeddings_target"
+        # Project from shape (b, src_len, h*2) to (b, src_len, h)
+        enc_hiddens_proj = self.att_projection(enc_hiddens)
+        # Shape (tgt_len, b, e) 
+        Y = self.model_embeddings_target(target_padded)
 
+        h_t, c_t = dec_init_state
+        # g_t: ground truth. shape (1, b, e)
+        for t, g_t in enumerate(torch.split(Y, split_size_or_sections=1)):
+            (h_t, c_t), combined_output, _ = self.step(
+                torch.cat([g_t.squeeze(), o_prev], 1), (h_t, c_t), enc_hiddens, enc_hiddens_proj, enc_masks)
+            combined_outputs.append(combined_output)
+            o_prev = combined_output
+        combined_outputs = torch.stack(combined_outputs)
         ### END YOUR CODE FROM ASSIGNMENT 4
 
         return combined_outputs
@@ -207,7 +242,10 @@ class NMT(nn.Module):
         combined_output = None
 
         ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
-
+        dec_state = self.decoder(Ybar_t, dec_state)
+        h_t, c_t = dec_state
+        # Compute attention distribution.
+        e_t = torch.matmul(enc_hiddens_proj, h_t.unsqueeze(2)).squeeze(2)
         ### END YOUR CODE FROM ASSIGNMENT 4
 
         # Set e_t to -inf where enc_masks has 1
@@ -215,7 +253,13 @@ class NMT(nn.Module):
             e_t.data.masked_fill_(enc_masks.bool(), -float('inf'))
 
         ### COPY OVER YOUR CODE FROM ASSIGNMENT 4
-
+        s = nn.Softmax(dim=1)
+        alpha = s(e_t)
+        # The first dimension is batch, do matmul on the rest dimensions.
+        a_t = torch.bmm(alpha.unsqueeze(1), enc_hiddens).squeeze(1)
+        U_t = torch.cat([a_t, h_t], 1)
+        V_t = self.combined_output_projection(U_t)
+        O_t = self.dropout(torch.tanh(V_t))
         ### END YOUR CODE FROM ASSIGNMENT 4
 
         combined_output = O_t

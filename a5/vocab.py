@@ -161,8 +161,8 @@ class VocabEntry(object):
         ###         https://pytorch.org/docs/stable/tensors.html#torch.Tensor.contiguous
         ###         https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view
         char_ids = self.words2charindices(sents)
-        char_ids_padded = pad_sents_char(char_ids, self.char2id['<pad>'])
-        char_ids_tensor = torch.tensor(char_ids_padded, dtype=torch.long, device=device)
+        char_ids_padded = pad_sents_char(char_ids, 0)
+        char_ids_tensor = torch.tensor(char_ids_padded, device=device)
         return char_ids_tensor.permute(1, 0, 2)
         ### END YOUR CODE
 

@@ -47,7 +47,6 @@ class ModelEmbeddings(nn.Module):
 
         # char embedding size is 50.
         # The sequence length is self.word_embed_size which is used to construct max_pooling layer.
-        print('word_embed_size:', self.word_embed_size)
         self.cnn = CNN(in_channels=50, out_channels=self.word_embed_size)
         self.dropout = nn.Dropout(0.3)
         self.highway = Highway(self.word_embed_size)
@@ -63,11 +62,11 @@ class ModelEmbeddings(nn.Module):
             CNN-based embeddings for each word of the sentences in the batch
         """
         ### YOUR CODE HERE for part 1h
-        highway_output = torch.Tensor(input.size()[0], input.size()[1], self.word_embed_size)
         embedding = self.embedding(input)
         embedding = embedding.contiguous().view(-1, embedding.size()[-2], embedding.size(-1))
         conv_output = self.cnn(embedding.permute(0, 2, 1))
         highway_output = self.highway(torch.squeeze(conv_output, 2))
-        return highway_output.contiguous().view(input.size()[0], input.size()[1], self.word_embed_size)
+        dropout_output = self.dropout(highway_output)
+        return dropout_output.contiguous().view(input.size()[0], input.size()[1], self.word_embed_size)
         ### END YOUR CODE
 

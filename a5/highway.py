@@ -30,12 +30,12 @@ class Highway(nn.Module):
     		bias=True)
 
     def forward(self, x_conv):
-    	"""
-		@param x_conv(Tensor): Input tensor, with size (batch_size, embedding_size)
-    	"""
-    	x_proj = F.relu(self.W_proj(x_conv))
-    	x_gate = torch.sigmoid(self.W_gate(x_conv))
-    	return x_gate * x_proj + (1-x_gate) * x_conv
+        """
+        @param x_conv(Tensor): Input tensor, with size (batch_size, embedding_size)
+        """
+        x_proj = F.relu(self.W_proj(x_conv))
+        x_gate = torch.sigmoid(self.W_gate(x_conv))
+        return x_gate * x_proj + (1-x_gate) * x_conv
     ### END YOUR CODE
 
 def main():

@@ -55,6 +55,7 @@ $[-0.1959,  0.0554, -0.0647]$ and $[-0.5109, -0.4980, -0.5195]$
 With input: $$[[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]$$
 The output is: $$[[0.0600, 0.1243, 0.2281], [0.2247, 0.3001, 0.5160]]$$
 We copied the parameters into the $test\_highway.py$ file and computed the formula manually, and we got the same output.\\
-(g) We choose to use a simple input: $torch.ones(3, 2, 10)$ which means the batch size is 3, padded word length is 2(for each word it only has 2 chars), and char embedding size is 10. The CNN output channel is set to be 3. Since the convolutional filter size is 5 and padding length is 1, the convolutional output is $\mathbb{R}^{3,3, (10+2*1-(5-1))} = \mathbb{R}^{3,3,8}$. So we should set max pooling layer's window size to be 8. After the maxpooling layer the final output is $\mathbb{R}^{3,3,1}$. And we checked the intermediate output are matching the calculated value.
+(g) We choose to use a simple input: $torch.ones(3, 2, 10)$ which means the batch size is 3, padded word length is 2(for each word it only has 2 chars), and char embedding size is 10. The CNN output channel is set to be 3. Since the convolutional filter size is 5 and padding length is 1, the convolutional output is $\mathbb{R}^{3,3, (10+2*1-(5-1))} = \mathbb{R}^{3,3,8}$. So we should set max pooling layer's window size to be 8. After the maxpooling layer the final output is $\mathbb{R}^{3,3,1}$. And we checked the intermediate output are matching the calculated value.\\
+(j) BLEU score: 99.66941696422141
 \end{document} 
 
