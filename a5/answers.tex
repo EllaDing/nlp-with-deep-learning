@@ -57,5 +57,25 @@ The output is: $$[[0.0600, 0.1243, 0.2281], [0.2247, 0.3001, 0.5160]]$$
 We copied the parameters into the $test\_highway.py$ file and computed the formula manually, and we got the same output.\\
 (g) We choose to use a simple input: $torch.ones(3, 2, 10)$ which means the batch size is 3, padded word length is 2(for each word it only has 2 chars), and char embedding size is 10. The CNN output channel is set to be 3. Since the convolutional filter size is 5 and padding length is 1, the convolutional output is $\mathbb{R}^{3,3, (10+2*1-(5-1))} = \mathbb{R}^{3,3,8}$. So we should set max pooling layer's window size to be 8. After the maxpooling layer the final output is $\mathbb{R}^{3,3,1}$. And we checked the intermediate output are matching the calculated value.\\
 (j) BLEU score: 99.66941696422141
+\section{Character-based LSTM decoder for NMT}
+(d) 99.66941696422141\\
+(e)
+\section{Analyzing NMT Systems}
+(a) "traduzco": 43988\\
+"traduce": 7844\\
+"traducir": 4579\\
+Other forms are not showing up. For word-level NMT, it only learns from the shown 3 forms. If there are the other 3 forms showing up in test set, the model will mark these words as out-of-vocab words. If we use the new character-aware NMT model, since it learns the word embedding from character level, it may capture the information of these words since they share very similar character distributions.\\
+(b) i. financial: economic, business, markets, banking, finance\\
+neuron: neural, cells, brain, nervous, receptors\\
+Francisco: san, jose, diego, antonio, california\\
+naturally: occurring, readily, humans, arise, easily\\\\
+ii. For character-level embedding:\\
+financial: vertical, informal, physical, electrical, cultural\\
+neuron: Newton, George, NBA, Delhi, person\\
+Francisco: France, platform, tissue, Foundation, microphone\\
+naturally: practically, typically, significantly, mentally, gradually\\\\
+iii. For word level embedding, the similarity is semantic and syntactic similarity. For character level embedding, the similarity is more like word-formation similarity.
+
+expectation: norms, assumptions, policies, inflation, confidence
 \end{document} 
 
